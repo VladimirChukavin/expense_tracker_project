@@ -1,0 +1,122 @@
+[
+  {
+    "model": "categories.category",
+    "pk": 1,
+    "fields": {
+      "name": "Продукты",
+      "icon": "🛒",
+      "color": "#4CAF50",
+      "description": "Покупки в магазинах и супермаркетах",
+      "is_default": true,
+      "order": 1
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 2,
+    "fields": {
+      "name": "Транспорт",
+      "icon": "🚗",
+      "color": "#2196F3",
+      "description": "Транспортные расходы",
+      "is_default": true,
+      "order": 2
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 3,
+    "fields": {
+      "name": "Жильё",
+      "icon": "🏠",
+      "color": "#FF9800",
+      "description": "Аренда, коммунальные услуги",
+      "is_default": true,
+      "order": 3
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 4,
+    "fields": {
+      "name": "Развлечения",
+      "icon": "🎮",
+      "color": "#E91E63",
+      "description": "Развлечения и досуг",
+      "is_default": true,
+      "order": 4
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 5,
+    "fields": {
+      "name": "Здоровье",
+      "icon": "💊",
+      "color": "#F44336",
+      "description": "Медицина и здоровье",
+      "is_default": true,
+      "order": 5
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 6,
+    "fields": {
+      "name": "Образование",
+      "icon": "📚",
+      "color": "#9C27B0",
+      "description": "Обучение и книги",
+      "is_default": true,
+      "order": 6
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 7,
+    "fields": {
+      "name": "Одежда",
+      "icon": "👕",
+      "color": "#00BCD4",
+      "description": "Одежда и обувь",
+      "is_default": true,
+      "order": 7
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 8,
+    "fields": {
+      "name": "Рестораны",
+      "icon": "🍽️",
+      "color": "#FF5722",
+      "description": "Кафе и рестораны",
+      "is_default": true,
+      "order": 8
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 9,
+    "fields": {
+      "name": "Путешествия",
+      "icon": "✈️",
+      "color": "#009688",
+      "description": "Поездки и путешествия",
+      "is_default": true,
+      "order": 9
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 10,
+    "fields": {
+      "name": "Прочее",
+      "icon": "📌",
+      "color": "#607D8B",
+      "description": "Прочие расходы",
+      "is_default": true,
+      "order": 10
+    }
+  }
+]
