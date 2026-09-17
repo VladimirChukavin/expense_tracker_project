@@ -81,9 +81,10 @@ expense_tracker/
 │   │   ├── __init__.py
 │   │   ├── apps.py
 │   │   ├── models.py                       # Базовые абстрактные модели
-│   │   ├── permissions.py                  # Кастомные permissions
+│   │   ├── permissions.py                  # Кастомные разрешения
 │   │   ├── pagination.py                   # Pagination классы
-│   │   └── exceptions.py                   # Exception handlers
+│   │   ├── exceptions.py                   # Обработка исключений
+│   │   └── utils.py                        # Функции-утилиты
 │   │
 │   ├── fixtures/                           # Начальные данные
 │   │   ├── currencies.json                 # Популярные валюты
@@ -99,20 +100,23 @@ expense_tracker/
 │   ├── conftest.py                         # Pytest fixtures
 │   ├── Dockerfile                          # Docker образ для backend
 │   ├── setup.sh                            # Скрипт настройки
-│   ├── .env.example                        # Пример переменных окружения
-│   └── .gitignore                          # Git ignore правила
+│   └── .env.example                        # Пример переменных окружения
 │
-├── frontend/                               # Frontend (будет создан)
+├── frontend/                               # Frontend
 │   ├── src/
+│   │   ├── api/                            # API компоненты
 │   │   ├── components/                     # React/Vue компоненты
-│   │   ├── pages/                          # Страницы приложения
-│   │   ├── store/                          # State management
-│   │   ├── services/                       # API клиенты
+│   │   ├── features/                       # Функциональные приложения
+│   │   ├── stores/                         # Хранилище состояний
+│   │   ├── hooks/                          # Hooks
+│   │   ├── routes/                         # Роуты
 │   │   ├── utils/                          # Утилиты
 │   │   └── App.jsx                         # Главный компонент
 │   ├── public/
 │   ├── package.json
 │   └── Dockerfile
+│
+├── nginx/                                  # Nginx конфигурация
 │
 ├── docker-compose.yml                      # Docker Compose конфигурация
 ├── Makefile                                # Удобные команды
@@ -122,7 +126,8 @@ expense_tracker/
 ├── DEPLOYMENT.md                           # Инструкции по деплою
 ├── TECHNICAL_SPEC.md                       # Техническая спецификация
 ├── API_EXAMPLES.md                         # Примеры API запросов
-└── PROJECT_STRUCTURE.md                    # Этот файл
+├── PROJECT_STRUCTURE.md                    # Этот файл
+└── .gitignore                              # Git ignore правила
 ```
 
 ## Описание ключевых модулей
@@ -382,7 +387,7 @@ GET    /api/analytics/compare/
 
 ### Backend Stack
 - **Python 3.12+**
-- **Django 5.1+** - веб-фреймворк
+- **Django 6.1+** - веб-фреймворк
 - **Django REST Framework** - REST API
 - **PostgreSQL** - реляционная БД
 - **Redis** - кеш и брокер сообщений
@@ -428,10 +433,10 @@ GET    /api/analytics/compare/
 1. **Frontend разработка** - React/Vue интерфейс
 2. **Экспорт данных** - CSV, PDF, Excel
 3. **Email уведомления** - алерты по бюджетам
-4. **Импорт из банков** - парсинг выписок
+4. **Графики и визуализации** - улучшенная аналитика
 5. **Machine Learning** - автокатегоризация
 6. **Мобильное приложение** - React Native
-7. **Графики и визуализации** - улучшенная аналитика
+7. **Импорт из банков** - парсинг выписок
 8. **Совместный доступ** - семейные бюджеты
 9. **Интеграция с банками** - Open Banking API
 10. **Telegram бот** - быстрое добавление расходов
