@@ -21,8 +21,8 @@ sdist/
 var/
 wheels/
 share/python-wheels/
-#*.egg-info/
 .installed.cfg
+*.egg-info/
 *.egg
 MANIFEST
 
@@ -223,3 +223,16 @@ __marimo__/
 # Claude Code
 .claude/
 CLAUDE.md
+
+# Python
+*.py[cod]
+dist/
+
+# IDE
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
