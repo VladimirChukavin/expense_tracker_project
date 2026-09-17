@@ -6,6 +6,7 @@ python-dotenv==1.2.3
 # Django REST Framework
 djangorestframework==3.18.1
 djangorestframework-simplejwt==5.5.1
+djangorestframework-stubs==3.18.1
 django-cors-headers==4.9.0
 django-filter==26.1
 drf-spectacular==0.30.0
