@@ -271,10 +271,10 @@ store/
 
 ### Backend
 - Python 3.12+
-- Django 5.1+
+- Django 6.1+
 - Django REST Framework
-- PostgreSQL 14+
-- Redis 7+
+- PostgreSQL 18+
+- Redis 8+
 - Celery
 - JWT Authentication
 - drf-spectacular (OpenAPI)
