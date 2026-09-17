@@ -1,16 +1,16 @@
-version: '3.8'
+name: expense_tracker
 
 services:
   # PostgreSQL Database
   db:
-    image: postgres:16-alpine
-    container_name: expense_tracker_db
+    image: postgres:18-alpine
+    container_name: expense_tracker_database
     environment:
       - POSTGRES_DB=expense_tracker
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     ports:
       - "5432:5432"
     healthcheck:
@@ -18,10 +18,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - expense_tracker_network
 
   # Redis
   redis:
-    image: redis:7-alpine
+    image: redis:8.10.1-alpine
     container_name: expense_tracker_redis
     ports:
       - "6379:6379"
@@ -30,6 +32,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - expense_tracker_network
 
   # Django Backend
   backend:
@@ -56,6 +60,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - expense_tracker_network
 
   # Celery Worker
   celery:
@@ -72,6 +78,8 @@ services:
       - db
       - redis
       - backend
+    networks:
+      - expense_tracker_network
 
   # Celery Beat (Scheduler)
   celery-beat:
@@ -88,6 +96,8 @@ services:
       - db
       - redis
       - backend
+    networks:
+      - expense_tracker_network
 
   # Frontend (React)
   frontend:
@@ -104,8 +114,14 @@ services:
       - REACT_APP_API_URL=http://localhost:8000/api
     depends_on:
       - backend
+    networks:
+      - expense_tracker_network
 
 volumes:
   postgres_data:
   media_files:
   static_files:
+
+networks:
+  expense_tracker_network:
+    driver: bridge
