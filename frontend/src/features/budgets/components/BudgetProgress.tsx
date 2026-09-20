@@ -1,5 +1,4 @@
 import { Budget } from '@/types/models';
-import { Progress } from '@/components/ui/progress';
 import { BUDGET_THRESHOLD_COLORS } from '@/lib/constants';
 
 interface BudgetProgressProps {
@@ -22,16 +21,15 @@ export const BudgetProgress = ({ budget, showLabel = true }: BudgetProgressProps
 
   return (
     <div className="space-y-2">
-      <Progress
-        value={percentage}
-        className="h-2"
-        style={{
-          backgroundColor: '#e5e7eb',
-        }}
-        indicatorStyle={{
-          backgroundColor: color,
-        }}
-      />
+      <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className="h-full transition-all duration-300 rounded-full"
+          style={{
+            width: `${percentage}%`,
+            backgroundColor: color,
+          }}
+        />
+      </div>
       {showLabel && (
         <div className="flex justify-between text-sm">
           <span style={{ color }}>
