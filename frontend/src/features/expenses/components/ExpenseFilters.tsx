@@ -73,7 +73,6 @@ export const ExpenseFilters = ({ onFilterChange }: ExpenseFiltersProps) => {
                 mode="single"
                 selected={dateFrom}
                 onSelect={setDateFrom}
-                initialFocus
               />
             </PopoverContent>
           </Popover>
@@ -99,7 +98,6 @@ export const ExpenseFilters = ({ onFilterChange }: ExpenseFiltersProps) => {
                 mode="single"
                 selected={dateTo}
                 onSelect={setDateTo}
-                initialFocus
               />
             </PopoverContent>
           </Popover>
