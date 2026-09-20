@@ -5,22 +5,9 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { PrivateRoute } from './PrivateRoute';
 import { ExpensesPage } from '@/features/expenses/pages/ExpensesPage';
 import { CategoriesPage } from '@/features/categories/pages/CategoriesPage';
-
-const DashboardPage = () => (
-  <div>
-    <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-    <p className="text-gray-600">В разработке - здесь будет главная страница</p>
-  </div>
-);
-
 import { BudgetsPage } from '@/features/budgets/pages/BudgetsPage';
-
-const AnalyticsPage = () => (
-  <div>
-    <h1 className="text-2xl font-bold mb-4">Аналитика</h1>
-    <p className="text-gray-600">В разработке</p>
-  </div>
-);
+import { DashboardPage } from '@/features/analytics/pages/DashboardPage';
+import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage';
 
 export const AppRoutes = () => {
   return (
