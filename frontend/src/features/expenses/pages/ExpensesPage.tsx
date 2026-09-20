@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/common/PageHeader';
 import { ExpenseList } from '../components/ExpenseList';
 import { ExpenseFilters } from '../components/ExpenseFilters';
@@ -16,7 +15,6 @@ import { ExpenseForm } from '../components/ExpenseForm';
 import { useExpenses } from '../hooks/useExpenses';
 
 export const ExpensesPage = () => {
-  const navigate = useNavigate();
   const [filters, setFilters] = useState({});
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [expenseToEdit, setExpenseToEdit] = useState<Expense | undefined>();
