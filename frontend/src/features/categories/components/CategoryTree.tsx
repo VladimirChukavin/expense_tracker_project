@@ -73,8 +73,8 @@ const TreeNode = ({ category, children, level, onSelect, onEdit, onDelete }: Tre
 
       {isExpanded && hasChildren && (
         <div>
-          {children.map((child) => {
-            const grandChildren = categories.filter(c => c.parent === child.id);
+          {children.map((child: Category) => {
+            const grandChildren: Category[] = [];
             return (
               <TreeNode
                 key={child.id}
