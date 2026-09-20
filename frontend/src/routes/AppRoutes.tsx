@@ -4,18 +4,12 @@ import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PrivateRoute } from './PrivateRoute';
 import { ExpensesPage } from '@/features/expenses/pages/ExpensesPage';
+import { CategoriesPage } from '@/features/categories/pages/CategoriesPage';
 
 const DashboardPage = () => (
   <div>
     <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
     <p className="text-gray-600">В разработке - здесь будет главная страница</p>
-  </div>
-);
-
-const CategoriesPage = () => (
-  <div>
-    <h1 className="text-2xl font-bold mb-4">Категории</h1>
-    <p className="text-gray-600">В разработке</p>
   </div>
 );
 
