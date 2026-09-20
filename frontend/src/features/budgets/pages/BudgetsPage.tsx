@@ -25,10 +25,8 @@ export const BudgetsPage = () => {
 
   const {
     budgets,
-    alerts,
     exceededBudgets,
     isLoading,
-    isLoadingAlerts,
     error,
     createBudget,
     updateBudget,
