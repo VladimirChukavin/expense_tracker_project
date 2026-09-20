@@ -50,16 +50,14 @@ export const useAuth = () => {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: authApi.getMe,
+    queryFn: async () => {
+      const data = await authApi.getMe();
+      setUser(data);
+      return data;
+    },
     enabled: isAuthenticated,
     retry: false,
     staleTime: 5 * 60 * 1000,
-    onSuccess: (data) => {
-      setUser(data);
-    },
-    onError: () => {
-      logoutStore();
-    },
   });
 
   return {
