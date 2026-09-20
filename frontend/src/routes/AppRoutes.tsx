@@ -1,9 +1,43 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { PrivateRoute } from './PrivateRoute';
 
-const DashboardPage = () => <div className="p-8">Dashboard (в разработке)</div>;
+const DashboardPage = () => (
+  <div>
+    <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+    <p className="text-gray-600">В разработке - здесь будет главная страница</p>
+  </div>
+);
+
+const ExpensesPage = () => (
+  <div>
+    <h1 className="text-2xl font-bold mb-4">Расходы</h1>
+    <p className="text-gray-600">В разработке</p>
+  </div>
+);
+
+const CategoriesPage = () => (
+  <div>
+    <h1 className="text-2xl font-bold mb-4">Категории</h1>
+    <p className="text-gray-600">В разработке</p>
+  </div>
+);
+
+const BudgetsPage = () => (
+  <div>
+    <h1 className="text-2xl font-bold mb-4">Бюджеты</h1>
+    <p className="text-gray-600">В разработке</p>
+  </div>
+);
+
+const AnalyticsPage = () => (
+  <div>
+    <h1 className="text-2xl font-bold mb-4">Аналитика</h1>
+    <p className="text-gray-600">В разработке</p>
+  </div>
+);
 
 export const AppRoutes = () => {
   return (
@@ -15,7 +49,53 @@ export const AppRoutes = () => {
         path="/"
         element={
           <PrivateRoute>
-            <DashboardPage />
+            <MainLayout>
+              <DashboardPage />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/expenses"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <ExpensesPage />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/categories"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <CategoriesPage />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/budgets"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <BudgetsPage />
+            </MainLayout>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/analytics"
+        element={
+          <PrivateRoute>
+            <MainLayout>
+              <AnalyticsPage />
+            </MainLayout>
           </PrivateRoute>
         }
       />
