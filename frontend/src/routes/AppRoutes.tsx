@@ -13,12 +13,7 @@ const DashboardPage = () => (
   </div>
 );
 
-const BudgetsPage = () => (
-  <div>
-    <h1 className="text-2xl font-bold mb-4">Бюджеты</h1>
-    <p className="text-gray-600">В разработке</p>
-  </div>
-);
+import { BudgetsPage } from '@/features/budgets/pages/BudgetsPage';
 
 const AnalyticsPage = () => (
   <div>
