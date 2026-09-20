@@ -13,11 +13,19 @@
 - **Celery** - асинхронные задачи
 - **JWT** - аутентификация
 
-### Frontend (планируется)
-- **React 18+** / **Vue 3+**
-- **TypeScript**
-- **Tailwind CSS**
-- **Chart.js / Recharts** - графики и визуализация
+### Frontend
+- **React 18** + **TypeScript** - современный UI
+- **Vite** - быстрая сборка и dev-сервер
+- **Tailwind CSS** - utility-first стилизация
+- **shadcn/ui** - компоненты (Radix UI + Tailwind)
+- **React Router v6** - маршрутизация
+- **Zustand** - легковесный state management
+- **React Query (TanStack Query)** - управление серверным состоянием и кеширование
+- **Axios** - HTTP клиент с interceptors
+- **Recharts** - графики и визуализация
+- **React Hook Form + Zod** - формы и валидация
+- **date-fns** - работа с датами
+- **react-hot-toast** - уведомления
 
 ### Инфраструктура
 - **Docker & Docker Compose**
@@ -25,8 +33,8 @@
 
 ## Функциональность
 
-### Основные возможности
-- ✅ Регистрация и аутентификация пользователей
+### Backend API
+- ✅ Регистрация и аутентификация пользователей (JWT)
 - ✅ Управление категориями расходов (с иерархией)
 - ✅ Добавление, редактирование, удаление расходов
 - ✅ Прикрепление чеков к расходам
@@ -37,6 +45,18 @@
 - ✅ Бюджетирование с алертами
 - ✅ Аналитика и статистика
 - ✅ Фильтрация и поиск
+
+### Frontend (Web UI)
+- ✅ Адаптивный интерфейс на React + TypeScript
+- ✅ Аутентификация (вход/регистрация) с JWT токенами
+- ✅ Управление расходами (CRUD, фильтры, пагинация)
+- ✅ Загрузка чеков с preview
+- ✅ Иерархическое дерево категорий
+- ✅ Бюджетирование с визуальными индикаторами
+- ✅ Dashboard с виджетами статистики
+- ✅ Аналитика с графиками (pie chart, line chart)
+- ✅ Топ-10 расходов
+- ✅ Фильтрация по периодам
 
 ### API Endpoints
 
@@ -189,6 +209,32 @@ celery -A expense_tracker worker --loglevel=info
 celery -A expense_tracker beat --loglevel=info
 ```
 
+### Frontend
+
+1. **Установка зависимостей**
+```bash
+cd frontend
+npm install
+```
+
+2. **Настройка переменных окружения**
+```bash
+# Создайте .env.local
+echo "VITE_API_URL=http://localhost:8000/api" > .env.local
+```
+
+3. **Запуск dev-сервера**
+```bash
+npm run dev
+# Приложение доступно на http://localhost:5173
+```
+
+4. **Сборка для production**
+```bash
+npm run build
+npm run preview
+```
+
 ### Запуск с Docker
 
 1. **Запуск всех сервисов**
@@ -223,26 +269,54 @@ expense_tracker/
 │   │   ├── tags/                # Теги
 │   │   ├── currencies/          # Валюты
 │   │   ├── expenses/            # Расходы
+│   │   ├── recurring/           # Периодические расходы
 │   │   ├── budgets/             # Бюджеты
 │   │   └── analytics/           # Аналитика
 │   ├── core/                    # Общие утилиты
 │   ├── manage.py
 │   └── requirements.txt
-├── frontend/                    # Frontend (будет создан)
+├── frontend/                    # React + TypeScript
+│   ├── src/
+│   │   ├── components/         # Переиспользуемые компоненты
+│   │   │   ├── ui/            # shadcn/ui компоненты
+│   │   │   ├── layout/        # Layout (Header, Sidebar)
+│   │   │   ├── charts/        # Графики (Recharts)
+│   │   │   └── common/        # Общие компоненты
+│   │   ├── features/          # Функциональные модули
+│   │   │   ├── auth/         # Аутентификация
+│   │   │   ├── expenses/     # Управление расходами
+│   │   │   ├── categories/   # Категории
+│   │   │   ├── budgets/      # Бюджеты
+│   │   │   └── analytics/    # Аналитика и дашборд
+│   │   ├── lib/              # Утилиты и конфигурация
+│   │   ├── stores/           # Zustand stores
+│   │   ├── hooks/            # Custom hooks
+│   │   ├── routes/           # Routing
+│   │   ├── types/            # TypeScript типы
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tailwind.config.js
 ├── docker-compose.yml
 └── README.md
 ```
 
 ## API Документация
 
-После запуска сервера документация API доступна по адресам:
+После запуска backend сервера документация API доступна по адресам:
 - **Swagger UI**: http://localhost:8000/api/docs/
 - **ReDoc**: http://localhost:8000/api/redoc/
 - **OpenAPI Schema**: http://localhost:8000/api/schema/
 
+После запуска frontend: http://localhost:5173
+
 ## Тестирование
 
+### Backend
 ```bash
+cd backend
+
 # Запуск всех тестов
 pytest
 
@@ -251,6 +325,17 @@ pytest --cov
 
 # Конкретное приложение
 pytest apps/expenses/tests/
+```
+
+### Frontend
+```bash
+cd frontend
+
+# Линтинг
+npm run lint
+
+# Сборка (проверка типов)
+npm run build
 ```
 
 ## Разработка
@@ -274,6 +359,8 @@ python manage.py loaddata fixtures/file.json
 ## Production деплой
 
 ### Чеклист для production
+
+**Backend:**
 - [ ] Изменить `SECRET_KEY`
 - [ ] Установить `DEBUG=False`
 - [ ] Настроить `ALLOWED_HOSTS`
@@ -284,3 +371,10 @@ python manage.py loaddata fixtures/file.json
 - [ ] Настроить бэкапы базы данных
 - [ ] Настроить firewall
 - [ ] Настроить rate limiting
+
+**Frontend:**
+- [ ] Настроить production переменные окружения (`VITE_API_URL`)
+- [ ] Собрать production bundle (`npm run build`)
+- [ ] Деплой на static hosting (Netlify, Vercel, CloudFlare Pages)
+- [ ] Настроить CORS для production домена
+- [ ] Настроить CDN для статики
