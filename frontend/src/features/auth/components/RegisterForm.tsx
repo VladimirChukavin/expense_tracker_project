@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '../hooks/useAuth';
 
 const registerSchema = z.object({
@@ -13,6 +14,9 @@ const registerSchema = z.object({
   password2: z.string().min(6, 'Минимум 6 символов'),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
+  agreeToTerms: z.boolean().refine((value) => value, {
+    message: 'Необходимо согласиться с условиями',
+  }),
 }).refine((data) => data.password === data.password2, {
   message: 'Пароли не совпадают',
   path: ['password2'],
@@ -114,6 +118,39 @@ export const RegisterForm = () => {
         {errors.password2 && (
           <p className="text-sm text-red-500">{errors.password2.message}</p>
         )}
+      </div>
+
+      <div className="flex items-start space-x-2">
+        <Checkbox
+          id="agreeToTerms"
+          {...register('agreeToTerms')}
+          disabled={isLoading}
+        />
+        <div className="text-sm leading-relaxed">
+          <Label htmlFor="agreeToTerms" className="font-normal cursor-pointer">
+            Я согласен с{' '}
+            <a
+              href="/terms-of-service.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              пользовательским соглашением
+            </a>
+            {' '}и{' '}
+            <a
+              href="/privacy-policy.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              политикой обработки данных
+            </a>
+          </Label>
+          {errors.agreeToTerms && (
+            <p className="text-sm text-red-500 mt-1">{errors.agreeToTerms.message}</p>
+          )}
+        </div>
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
