@@ -1,26 +1,60 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LoginPage } from '@/features/auth/pages/LoginPage';
-import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PrivateRoute } from './PrivateRoute';
-import { ExpensesPage } from '@/features/expenses/pages/ExpensesPage';
-import { CategoriesPage } from '@/features/categories/pages/CategoriesPage';
-import { BudgetsPage } from '@/features/budgets/pages/BudgetsPage';
-import { DashboardPage } from '@/features/analytics/pages/DashboardPage';
-import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+
+// Lazy-загрузка страниц: каждый чанк подтягивается по мере надобности
+const LoginPage = lazy(() =>
+  import('@/features/auth/pages/LoginPage').then((m) => ({ default: m.LoginPage }))
+);
+const RegisterPage = lazy(() =>
+  import('@/features/auth/pages/RegisterPage').then((m) => ({ default: m.RegisterPage }))
+);
+const DashboardPage = lazy(() =>
+  import('@/features/analytics/pages/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const ExpensesPage = lazy(() =>
+  import('@/features/expenses/pages/ExpensesPage').then((m) => ({ default: m.ExpensesPage }))
+);
+const CategoriesPage = lazy(() =>
+  import('@/features/categories/pages/CategoriesPage').then((m) => ({ default: m.CategoriesPage }))
+);
+const BudgetsPage = lazy(() =>
+  import('@/features/budgets/pages/BudgetsPage').then((m) => ({ default: m.BudgetsPage }))
+);
+const AnalyticsPage = lazy(() =>
+  import('@/features/analytics/pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage }))
+);
+
+const NotFoundPage = () => (
+  <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center">
+    <h1 className="text-6xl font-bold text-gray-900">404</h1>
+    <p className="text-gray-600">Страница не найдена</p>
+    <Button asChild>
+      <Link to="/">На главную</Link>
+    </Button>
+  </div>
+);
+
+const withSuspense = (element: React.ReactNode) => (
+  <Suspense fallback={<LoadingSpinner />}>{element}</Suspense>
+);
 
 export const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={withSuspense(<LoginPage />)} />
+      <Route path="/register" element={withSuspense(<RegisterPage />)} />
 
       <Route
         path="/"
         element={
           <PrivateRoute>
             <MainLayout>
-              <DashboardPage />
+              {withSuspense(<DashboardPage />)}
             </MainLayout>
           </PrivateRoute>
         }
@@ -31,7 +65,7 @@ export const AppRoutes = () => {
         element={
           <PrivateRoute>
             <MainLayout>
-              <ExpensesPage />
+              {withSuspense(<ExpensesPage />)}
             </MainLayout>
           </PrivateRoute>
         }
@@ -42,7 +76,7 @@ export const AppRoutes = () => {
         element={
           <PrivateRoute>
             <MainLayout>
-              <CategoriesPage />
+              {withSuspense(<CategoriesPage />)}
             </MainLayout>
           </PrivateRoute>
         }
@@ -53,7 +87,7 @@ export const AppRoutes = () => {
         element={
           <PrivateRoute>
             <MainLayout>
-              <BudgetsPage />
+              {withSuspense(<BudgetsPage />)}
             </MainLayout>
           </PrivateRoute>
         }
@@ -64,13 +98,14 @@ export const AppRoutes = () => {
         element={
           <PrivateRoute>
             <MainLayout>
-              <AnalyticsPage />
+              {withSuspense(<AnalyticsPage />)}
             </MainLayout>
           </PrivateRoute>
         }
       />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/404" element={<NotFoundPage />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
   );
 };
