@@ -8,6 +8,7 @@ import { useAnalytics } from '../hooks/useAnalytics';
 import { useExpenses } from '@/features/expenses/hooks/useExpenses';
 import { Wallet, TrendingUp, ShoppingCart } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { formatCurrency } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,7 @@ export const AnalyticsPage = () => {
   const [endDate, setEndDate] = useState('');
   const [appliedDates, setAppliedDates] = useState({ start: '', end: '' });
 
-  const { summary, byCategory, trends, isLoading } = useAnalytics(
+  const { summary, byCategory, trends, isLoading, error } = useAnalytics(
     appliedDates.start,
     appliedDates.end
   );
@@ -40,6 +41,10 @@ export const AnalyticsPage = () => {
 
   if (isLoading || isLoadingExpenses) {
     return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <ErrorMessage message="Ошибка загрузки аналитики" />;
   }
 
   return (
@@ -77,19 +82,19 @@ export const AnalyticsPage = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           title="Всего расходов"
-          value={formatCurrency(summary?.total_expenses || '0')}
+          value={formatCurrency(summary?.total ?? 0, summary?.currency || undefined)}
           icon={Wallet}
           color="text-blue-600"
         />
         <StatCard
           title="Количество"
-          value={summary?.expense_count || 0}
+          value={summary?.count ?? 0}
           icon={ShoppingCart}
           color="text-green-600"
         />
         <StatCard
           title="Средний чек"
-          value={formatCurrency(summary?.average_expense || '0')}
+          value={formatCurrency(summary?.average ?? 0, summary?.currency || undefined)}
           icon={TrendingUp}
           color="text-purple-600"
         />
