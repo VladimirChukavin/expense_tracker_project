@@ -1,11 +1,22 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Expense } from '@/types/models';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Expense, Currency } from '@/types/models';
+import { CategorySelector } from '@/features/categories/components/CategorySelector';
+import { useCategories } from '@/features/categories/hooks/useCategories';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '@/lib/api/client';
 import { Upload, X } from 'lucide-react';
 
 const expenseSchema = z.object({
@@ -14,7 +25,6 @@ const expenseSchema = z.object({
   date: z.string().min(1, 'Дата обязательна'),
   category: z.number({ required_error: 'Категория обязательна' }),
   currency: z.number({ required_error: 'Валюта обязательна' }),
-  tags: z.array(z.number()).optional(),
 });
 
 type ExpenseFormData = z.infer<typeof expenseSchema>;
@@ -31,10 +41,31 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel, isLoading }: ExpenseF
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     expense?.receipt || null
   );
+  const [receiptRemoved, setReceiptRemoved] = useState(false);
+  const { categories } = useCategories();
+
+  const { data: currencies = [] } = useQuery({
+    queryKey: ['currencies'],
+    queryFn: async () => {
+      const response = await apiClient.get('/currencies/');
+      return response.data as Currency[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // освобождаем blob-URL при размонтировании и замене файла
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -45,7 +76,6 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel, isLoading }: ExpenseF
           date: expense.date,
           category: expense.category,
           currency: expense.currency,
-          tags: expense.tags || [],
         }
       : {
           date: new Date().toISOString().split('T')[0],
@@ -56,6 +86,7 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel, isLoading }: ExpenseF
     const file = e.target.files?.[0];
     if (file) {
       setReceipt(file);
+      setReceiptRemoved(false);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
@@ -64,6 +95,7 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel, isLoading }: ExpenseF
   const handleRemoveReceipt = () => {
     setReceipt(null);
     setPreviewUrl(null);
+    setReceiptRemoved(true);
   };
 
   const onFormSubmit = (data: ExpenseFormData) => {
@@ -77,12 +109,11 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel, isLoading }: ExpenseF
       formData.append('description', data.description);
     }
 
-    if (data.tags && data.tags.length > 0) {
-      data.tags.forEach((tag) => formData.append('tags', tag.toString()));
-    }
-
     if (receipt) {
       formData.append('receipt', receipt);
+    } else if (receiptRemoved) {
+      // сообщаем серверу, что чек нужно удалить
+      formData.append('receipt_clear', 'true');
     }
 
     onSubmit(formData);
@@ -132,33 +163,46 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel, isLoading }: ExpenseF
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="category">Категория *</Label>
-          <Input
-            id="category"
-            type="number"
-            placeholder="1"
-            {...register('category', { valueAsNumber: true })}
-            disabled={isLoading}
-          />
-          {errors.category && (
-            <p className="text-sm text-red-500">{errors.category.message}</p>
+        <Controller
+          control={control}
+          name="category"
+          render={({ field }) => (
+            <CategorySelector
+              categories={categories}
+              value={field.value}
+              onChange={field.onChange}
+              label="Категория *"
+            />
           )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="currency">Валюта *</Label>
-          <Input
-            id="currency"
-            type="number"
-            placeholder="1"
-            {...register('currency', { valueAsNumber: true })}
-            disabled={isLoading}
-          />
-          {errors.currency && (
-            <p className="text-sm text-red-500">{errors.currency.message}</p>
+        />
+        <Controller
+          control={control}
+          name="currency"
+          render={({ field }) => (
+            <div className="space-y-2">
+              <Label>Валюта *</Label>
+              <Select
+                value={field.value?.toString()}
+                onValueChange={(val) => field.onChange(parseInt(val))}
+                disabled={isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите валюту" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.id} value={currency.id.toString()}>
+                      {currency.code} — {currency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.currency && (
+                <p className="text-sm text-red-500">{errors.currency.message}</p>
+              )}
+            </div>
           )}
-        </div>
+        />
       </div>
 
       <div className="space-y-2">
