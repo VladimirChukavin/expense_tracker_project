@@ -1,15 +1,9 @@
-"""
-Budget admin configuration.
-"""
 from django.contrib import admin
 from .models import Budget
 
 
 @admin.register(Budget)
 class BudgetAdmin(admin.ModelAdmin):
-    """
-    Admin interface for budgets.
-    """
     list_display = (
         'name', 'amount', 'currency', 'period',
         'start_date', 'end_date', 'is_active', 'user'
