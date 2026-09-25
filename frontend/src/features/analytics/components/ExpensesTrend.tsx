@@ -10,7 +10,7 @@ interface ExpensesTrendProps {
 export const ExpensesTrend = ({ data }: ExpensesTrendProps) => {
   const chartData = data.map((item) => ({
     date: formatDate(item.date, 'dd.MM'),
-    value: parseFloat(item.total_amount),
+    value: item.total,
   }));
 
   return (
