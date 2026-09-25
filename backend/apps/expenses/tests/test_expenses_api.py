@@ -1,11 +1,12 @@
-"""
-Tests for the expenses API.
-"""
 import pytest
 from decimal import Decimal
+from django.contrib.auth import get_user_model
+
 from apps.currencies.models import Currency
 from apps.categories.models import Category
 from apps.expenses.models import Expense
+
+User = get_user_model()
 
 pytestmark = pytest.mark.django_db
 
@@ -24,8 +25,6 @@ def category(user):
 
 @pytest.fixture
 def other_user(db):
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
     return User.objects.create_user(
         email='other@example.com', password='otherpass123'
     )
@@ -60,7 +59,6 @@ class TestExpenseList:
         assert item['tag_names'] == []
 
     def test_user_isolation(self, authenticated_client, other_user, expense):
-        """The list must contain only the current user's expenses."""
         other_category = Category.objects.create(
             user=other_user, name='Другое'
         )
@@ -95,7 +93,7 @@ class TestExpenseCreate:
         assert Expense.objects.filter(description='Кофе').exists()
 
     def test_create_rejects_other_users_category(
-        self, authenticated_client, other_user, currency
+            self, authenticated_client, other_user, currency
     ):
         foreign_category = Category.objects.create(user=other_user, name='Чужая')
 
@@ -109,7 +107,6 @@ class TestExpenseCreate:
         response = authenticated_client.post(EXPENSES_URL, payload)
 
         assert response.status_code == 400
-        # кастомный exception handler оборачивает ошибки валидации в details
         assert 'category' in response.data['details']
 
     def test_create_rejects_zero_amount(self, authenticated_client, category, currency):
@@ -143,7 +140,6 @@ class TestBulkDelete:
         )
 
         assert response.status_code == 200
-        # чужой расход не удалён
         assert Expense.objects.filter(pk=foreign.pk).exists()
         assert not Expense.objects.filter(pk=expense.pk).exists()
 
