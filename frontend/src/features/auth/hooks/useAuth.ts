@@ -1,20 +1,26 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '@/stores/authStore';
+import { getTokens } from '@/lib/api/interceptors';
 import { LoginRequest, RegisterRequest } from '@/types/api';
 import toast from 'react-hot-toast';
 
 export const useAuth = () => {
   const navigate = useNavigate();
+  const location = useLocation() as { state?: { from?: { pathname: string } } };
+  const queryClient = useQueryClient();
   const { login: loginStore, logout: logoutStore, setUser, isAuthenticated } = useAuthStore();
+
+  // куда вернуться после успешного входа
+  const from = location.state?.from?.pathname || '/';
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (response) => {
       loginStore(response.access, response.refresh, response.user);
       toast.success('Вход выполнен успешно');
-      navigate('/');
+      navigate(from, {replace: true});
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Ошибка входа';
@@ -27,7 +33,7 @@ export const useAuth = () => {
     onSuccess: (response) => {
       loginStore(response.access, response.refresh, response.user);
       toast.success('Регистрация успешна');
-      navigate('/');
+      navigate(from, {replace: true});
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Ошибка регистрации';
@@ -36,14 +42,22 @@ export const useAuth = () => {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: () => authApi.logout(),
-    onSuccess: () => {
-      logoutStore();
-      toast.success('Выход выполнен');
-      navigate('/login');
+    mutationFn: async () => {
+      // blacklist refresh-токена на сервере (если он ещё есть)
+      const tokens = getTokens();
+      if (tokens?.refresh) {
+        try {
+          await authApi.logout(tokens.refresh);
+        } catch {
+          // даже если blacklist не удался — выходим локально
+        }
+      }
     },
-    onError: () => {
+    onSettled: () => {
       logoutStore();
+      // полностью очищаем кэш, чтобы данные не попали к следующему пользователю
+      queryClient.clear();
+      toast.success('Выход выполнен');
       navigate('/login');
     },
   });
