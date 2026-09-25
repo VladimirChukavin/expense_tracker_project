@@ -21,9 +21,6 @@ CACHES = {
     }
 }
 
-# Celery: задачи выполняются синхронно, без брокера
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BROKER_URL = 'memory://'
-
-# Быстрее токены не нужны, но оставляем дефолтные настройки JWT
