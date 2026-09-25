@@ -26,7 +26,6 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   email: string;
-  username: string;
   password: string;
   password2: string;
   first_name?: string;
@@ -39,7 +38,6 @@ export interface LoginResponse {
   user: {
     id: number;
     email: string;
-    username: string;
     first_name: string;
     last_name: string;
   };
@@ -57,7 +55,7 @@ export interface ExpenseFilters {
   date_from?: string;
   date_to?: string;
   category?: number;
-  tags?: number[];
+  tags?: string;
   min_amount?: number;
   max_amount?: number;
   search?: string;
@@ -74,25 +72,29 @@ export interface BudgetFilters {
   page_size?: number;
 }
 
+// Формат ответа /analytics/summary/ (суммы приведены к базовой валюте)
 export interface AnalyticsSummary {
-  total_expenses: string;
-  expense_count: number;
-  average_expense: string;
-  period_start: string;
-  period_end: string;
+  total: number;
+  count: number;
+  average: number;
+  currency: string | null;
+  unconverted_currencies: string[];
 }
 
+// Формат ответа /analytics/by-category/
 export interface ExpensesByCategory {
-  category: number;
-  category_name: string;
-  category_color: string;
-  total_amount: string;
-  expense_count: number;
-  percentage: number;
+  category__id: number;
+  category__name: string;
+  category__icon: string;
+  category__color: string;
+  total: number;
+  count: number;
+  avg: number;
 }
 
+// Формат ответа /analytics/trends/
 export interface ExpensesTrend {
   date: string;
-  total_amount: string;
-  expense_count: number;
+  total: number;
+  count: number;
 }
