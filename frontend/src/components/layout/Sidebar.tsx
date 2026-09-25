@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Wallet,
@@ -44,17 +44,23 @@ export const Sidebar = () => {
 
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => (
-            <Link
+            <NavLink
               key={item.path}
               to={item.path}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors',
-                sidebarCollapsed && 'justify-center'
-              )}
+              end={item.path === '/'}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-gray-700 hover:bg-gray-100',
+                  sidebarCollapsed && 'justify-center'
+                )
+              }
             >
               <item.icon size={20} />
               {!sidebarCollapsed && <span>{item.label}</span>}
-            </Link>
+            </NavLink>
           ))}
         </nav>
       </aside>
