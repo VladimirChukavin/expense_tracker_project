@@ -33,7 +33,7 @@ export const Header = () => {
           <DropdownMenuTrigger className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-gray-900">
-                {user?.first_name || user?.username || 'Пользователь'}
+                {user?.first_name || user?.email || 'Пользователь'}
               </p>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
