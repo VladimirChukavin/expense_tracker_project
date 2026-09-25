@@ -6,6 +6,7 @@ import { ExpensesTrend } from '../components/ExpensesTrend';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { Wallet, TrendingUp, ShoppingCart, Calendar } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { formatCurrency } from '@/lib/formatters';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 
@@ -19,13 +20,17 @@ export const DashboardPage = () => {
     };
   });
 
-  const { summary, byCategory, trends, isLoading } = useAnalytics(
+  const { summary, byCategory, trends, isLoading, error } = useAnalytics(
     dateRange.start,
     dateRange.end
   );
 
   if (isLoading) {
     return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <ErrorMessage message="Ошибка загрузки аналитики" />;
   }
 
   return (
@@ -38,19 +43,19 @@ export const DashboardPage = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Всего расходов"
-          value={formatCurrency(summary?.total_expenses || '0')}
+          value={formatCurrency(summary?.total ?? 0, summary?.currency || undefined)}
           icon={Wallet}
           color="text-blue-600"
         />
         <StatCard
           title="Количество"
-          value={summary?.expense_count || 0}
+          value={summary?.count ?? 0}
           icon={ShoppingCart}
           color="text-green-600"
         />
         <StatCard
           title="Средний чек"
-          value={formatCurrency(summary?.average_expense || '0')}
+          value={formatCurrency(summary?.average ?? 0, summary?.currency || undefined)}
           icon={TrendingUp}
           color="text-purple-600"
         />
