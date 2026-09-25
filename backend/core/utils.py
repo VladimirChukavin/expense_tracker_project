@@ -1,21 +1,13 @@
-"""
-Core utility functions and helpers.
-"""
-from typing import Dict, Any
 from decimal import Decimal
-from datetime import datetime, date
+from datetime import date
 from django.utils import timezone
 
 
 def convert_currency(amount: Decimal, from_currency, to_currency, exchange_rate: Decimal = None) -> Decimal:
-    """
-    Convert amount from one currency to another.
-    """
     if from_currency == to_currency:
         return amount
 
     if exchange_rate is None:
-        # Get exchange rate from database
         from apps.currencies.models import ExchangeRate
         today = timezone.now().date()
         try:
@@ -32,10 +24,6 @@ def convert_currency(amount: Decimal, from_currency, to_currency, exchange_rate:
 
 
 def get_date_range(period: str, start_date: date = None) -> tuple:
-    """
-    Get date range based on period (weekly, monthly, yearly).
-    Returns (start_date, end_date).
-    """
     from dateutil.relativedelta import relativedelta
 
     if start_date is None:
@@ -54,9 +42,6 @@ def get_date_range(period: str, start_date: date = None) -> tuple:
 
 
 def calculate_next_occurrence(current_date: date, frequency: str, interval: int) -> date:
-    """
-    Calculate next occurrence date for recurring expenses.
-    """
     from dateutil.relativedelta import relativedelta
 
     if frequency == 'daily':
@@ -72,25 +57,16 @@ def calculate_next_occurrence(current_date: date, frequency: str, interval: int)
 
 
 def format_currency(amount: Decimal, currency) -> str:
-    """
-    Format amount with currency symbol.
-    """
     return f"{currency.symbol}{amount:,.2f}"
 
 
 def validate_file_size(file, max_size_mb: int = 5):
-    """
-    Validate uploaded file size.
-    """
     max_size = max_size_mb * 1024 * 1024
     if file.size > max_size:
         raise ValueError(f"File size exceeds {max_size_mb}MB limit")
 
 
 def validate_file_extension(file, allowed_extensions: list):
-    """
-    Validate uploaded file extension.
-    """
     import os
     ext = os.path.splitext(file.name)[1].lower().replace('.', '')
     if ext not in allowed_extensions:
