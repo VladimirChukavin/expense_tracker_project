@@ -1,6 +1,3 @@
-"""
-Expense model for tracking expenses.
-"""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
@@ -9,9 +6,6 @@ from core.models import TimeStampedModel, UserOwnedModel
 
 
 class Expense(TimeStampedModel, UserOwnedModel):
-    """
-    Main expense model.
-    """
     PAYMENT_METHODS = [
         ('cash', _('Cash')),
         ('card', _('Card')),
@@ -41,7 +35,6 @@ class Expense(TimeStampedModel, UserOwnedModel):
     description = models.TextField(_('description'), blank=True)
     notes = models.TextField(_('notes'), blank=True)
 
-    # Payment details
     payment_method = models.CharField(
         _('payment method'),
         max_length=20,
@@ -49,14 +42,11 @@ class Expense(TimeStampedModel, UserOwnedModel):
         default='cash'
     )
 
-    # Location and receipt
     location = models.CharField(_('location'), max_length=255, blank=True)
     receipt = models.ImageField(_('receipt'), upload_to='receipts/%Y/%m/', blank=True, null=True)
 
-    # Tags and organization
     tags = models.ManyToManyField('tags.Tag', blank=True, related_name='expenses')
 
-    # Recurring expense reference
     recurring_expense = models.ForeignKey(
         'RecurringExpense',
         on_delete=models.SET_NULL,
@@ -65,7 +55,6 @@ class Expense(TimeStampedModel, UserOwnedModel):
         related_name='instances'
     )
 
-    # Metadata
     is_verified = models.BooleanField(_('is verified'), default=False)
 
     class Meta:
@@ -76,26 +65,28 @@ class Expense(TimeStampedModel, UserOwnedModel):
         indexes = [
             models.Index(fields=['user', 'date']),
             models.Index(fields=['user', 'category']),
-            models.Index(fields=['date']),
         ]
 
     def __str__(self):
         return f"{self.amount} {self.currency.code} - {self.category.name} ({self.date})"
 
     def get_converted_amount(self, target_currency):
-        """Convert expense amount to target currency."""
-        if self.currency == target_currency:
+        if self.currency_id == target_currency.id:
             return self.amount
 
-        # Here should be currency conversion logic
-        # For now, return original amount
-        return self.amount
+        from apps.currencies.models import ExchangeRate
+
+        rate = ExchangeRate.objects.filter(
+            from_currency=self.currency,
+            to_currency=target_currency,
+        ).order_by('-date').first()
+
+        if rate is None:
+            return None
+        return (self.amount * rate.rate).quantize(Decimal('0.01'))
 
 
 class RecurringExpense(TimeStampedModel, UserOwnedModel):
-    """
-    Model for recurring expenses.
-    """
     FREQUENCY_CHOICES = [
         ('daily', _('Daily')),
         ('weekly', _('Weekly')),
@@ -152,6 +143,7 @@ class RecurringExpense(TimeStampedModel, UserOwnedModel):
     def generate_next_expense(self):
         """Generate the next expense instance."""
         from datetime import timedelta
+        from dateutil.relativedelta import relativedelta
 
         if not self.is_active:
             return None
@@ -173,16 +165,14 @@ class RecurringExpense(TimeStampedModel, UserOwnedModel):
             recurring_expense=self
         )
 
-        # Update next_date
         if self.frequency == 'daily':
             self.next_date += timedelta(days=1)
         elif self.frequency == 'weekly':
             self.next_date += timedelta(weeks=1)
         elif self.frequency == 'monthly':
-            # Add one month (approximate)
-            self.next_date = self.next_date.replace(month=self.next_date.month % 12 + 1)
+            self.next_date += relativedelta(months=1)
         elif self.frequency == 'yearly':
-            self.next_date = self.next_date.replace(year=self.next_date.year + 1)
+            self.next_date += relativedelta(years=1)
 
         self.save()
         return expense
