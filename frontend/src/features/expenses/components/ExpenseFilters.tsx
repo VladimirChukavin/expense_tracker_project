@@ -8,9 +8,12 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { CalendarIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCategories } from '@/features/categories/hooks/useCategories';
+import { CategorySelector } from '@/features/categories/components/CategorySelector';
+import { ExpenseFilters as ExpenseFiltersType } from '@/types/api';
 
 interface ExpenseFiltersProps {
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: ExpenseFiltersType) => void;
 }
 
 export const ExpenseFilters = ({ onFilterChange }: ExpenseFiltersProps) => {
@@ -19,15 +22,21 @@ export const ExpenseFilters = ({ onFilterChange }: ExpenseFiltersProps) => {
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
   const [search, setSearch] = useState('');
+  const [categoryId, setCategoryId] = useState<number | undefined>();
+  const { categories } = useCategories();
 
   const handleApplyFilters = () => {
-    const filters: any = {};
+    const filters: ExpenseFiltersType = {};
 
     if (dateFrom) filters.date_from = format(dateFrom, 'yyyy-MM-dd');
     if (dateTo) filters.date_to = format(dateTo, 'yyyy-MM-dd');
-    if (minAmount) filters.min_amount = parseFloat(minAmount);
-    if (maxAmount) filters.max_amount = parseFloat(maxAmount);
+
+    const min = parseFloat(minAmount);
+    const max = parseFloat(maxAmount);
+    if (minAmount && !Number.isNaN(min)) filters.min_amount = min;
+    if (maxAmount && !Number.isNaN(max)) filters.max_amount = max;
     if (search) filters.search = search;
+    if (categoryId) filters.category = categoryId;
 
     onFilterChange(filters);
   };
@@ -38,6 +47,7 @@ export const ExpenseFilters = ({ onFilterChange }: ExpenseFiltersProps) => {
     setMinAmount('');
     setMaxAmount('');
     setSearch('');
+    setCategoryId(undefined);
     onFilterChange({});
   };
 
@@ -50,6 +60,16 @@ export const ExpenseFilters = ({ onFilterChange }: ExpenseFiltersProps) => {
             placeholder="Описание расхода..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Категория</Label>
+          <CategorySelector
+            categories={categories}
+            value={categoryId}
+            onChange={setCategoryId}
+            label={undefined}
           />
         </div>
 
