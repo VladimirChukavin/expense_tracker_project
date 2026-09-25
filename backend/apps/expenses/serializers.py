@@ -1,16 +1,11 @@
-"""
-Expense serializers.
-"""
 from rest_framework import serializers
+from django.conf import settings
 from .models import Expense, RecurringExpense
 from apps.categories.serializers import CategoryListSerializer
 from apps.tags.serializers import TagSerializer
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
-    """
-    Detailed serializer for expense model.
-    """
     category_detail = CategoryListSerializer(source='category', read_only=True)
     tags_detail = TagSerializer(source='tags', many=True, read_only=True)
     currency_code = serializers.CharField(source='currency.code', read_only=True)
@@ -26,22 +21,27 @@ class ExpenseSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at')
 
     def validate_category(self, value):
-        """Validate that category belongs to the user."""
         user = self.context['request'].user
         if value.user != user:
             raise serializers.ValidationError("Cannot use category from another user.")
         return value
 
     def validate_tags(self, value):
-        """Validate that all tags belong to the user."""
         user = self.context['request'].user
         for tag in value:
             if tag.user != user:
                 raise serializers.ValidationError("Cannot use tags from another user.")
         return value
 
+    def validate_receipt(self, value):
+        if value and hasattr(value, 'size') and value.size > settings.MAX_UPLOAD_SIZE:
+            raise serializers.ValidationError(
+                f"Receipt file is too large. Maximum size is "
+                f"{settings.MAX_UPLOAD_SIZE // (1024 * 1024)}MB."
+            )
+        return value
+
     def create(self, validated_data):
-        """Create expense with user from request."""
         tags = validated_data.pop('tags', [])
         validated_data['user'] = self.context['request'].user
         expense = Expense.objects.create(**validated_data)
@@ -49,29 +49,32 @@ class ExpenseSerializer(serializers.ModelSerializer):
             expense.tags.set(tags)
         return expense
 
+    def update(self, instance, validated_data):
+        if self.context['request'].data.get('receipt_clear') in ('true', 'True', '1'):
+            validated_data['receipt'] = None
+        return super().update(instance, validated_data)
+
 
 class ExpenseListSerializer(serializers.ModelSerializer):
-    """
-    Simplified serializer for expense lists.
-    """
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_icon = serializers.CharField(source='category.icon', read_only=True)
     category_color = serializers.CharField(source='category.color', read_only=True)
     currency_code = serializers.CharField(source='currency.code', read_only=True)
+    tag_names = serializers.SerializerMethodField()
 
     class Meta:
         model = Expense
         fields = (
             'id', 'amount', 'currency_code', 'category_name',
             'category_icon', 'category_color', 'date', 'description',
-            'payment_method', 'is_verified'
+            'payment_method', 'is_verified', 'receipt', 'tags', 'tag_names'
         )
+
+    def get_tag_names(self, obj):
+        return [tag.name for tag in obj.tags.all()]
 
 
 class RecurringExpenseSerializer(serializers.ModelSerializer):
-    """
-    Serializer for recurring expense model.
-    """
     category_detail = CategoryListSerializer(source='category', read_only=True)
     currency_code = serializers.CharField(source='currency.code', read_only=True)
     instances_count = serializers.SerializerMethodField()
@@ -88,18 +91,15 @@ class RecurringExpenseSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'next_date', 'created_at', 'updated_at')
 
     def get_instances_count(self, obj):
-        """Get count of generated expense instances."""
         return obj.instances.count()
 
     def validate_category(self, value):
-        """Validate that category belongs to the user."""
         user = self.context['request'].user
         if value.user != user:
             raise serializers.ValidationError("Cannot use category from another user.")
         return value
 
     def validate(self, attrs):
-        """Validate date range."""
         start_date = attrs.get('start_date')
         end_date = attrs.get('end_date')
 
@@ -109,7 +109,6 @@ class RecurringExpenseSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """Create recurring expense with user and next_date."""
         validated_data['user'] = self.context['request'].user
         validated_data['next_date'] = validated_data['start_date']
         return super().create(validated_data)
