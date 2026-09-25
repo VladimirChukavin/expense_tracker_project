@@ -1,14 +1,8 @@
-"""
-Expense filters.
-"""
 import django_filters
 from .models import Expense
 
 
 class ExpenseFilter(django_filters.FilterSet):
-    """
-    Filter class for expenses.
-    """
     date_from = django_filters.DateFilter(field_name='date', lookup_expr='gte')
     date_to = django_filters.DateFilter(field_name='date', lookup_expr='lte')
     amount_min = django_filters.NumberFilter(field_name='amount', lookup_expr='gte')
@@ -26,7 +20,6 @@ class ExpenseFilter(django_filters.FilterSet):
         ]
 
     def filter_tags(self, queryset, name, value):
-        """Filter by tag names (comma-separated)."""
         if value:
             tag_names = [tag.strip() for tag in value.split(',')]
             return queryset.filter(tags__name__in=tag_names).distinct()
