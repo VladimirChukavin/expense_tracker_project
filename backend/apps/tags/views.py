@@ -1,6 +1,3 @@
-"""
-Tag views.
-"""
 from rest_framework import viewsets, permissions, filters
 from core.permissions import IsOwner
 from .models import Tag
@@ -8,9 +5,6 @@ from .serializers import TagSerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for tags.
-    """
     serializer_class = TagSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -19,5 +13,4 @@ class TagViewSet(viewsets.ModelViewSet):
     ordering = ['name']
 
     def get_queryset(self):
-        """Filter tags by authenticated user."""
         return Tag.objects.filter(user=self.request.user)
