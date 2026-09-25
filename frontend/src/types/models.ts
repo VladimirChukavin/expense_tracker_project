@@ -3,12 +3,10 @@
 export interface User {
   id: number;
   email: string;
-  username: string;
   first_name?: string;
   last_name?: string;
-  default_currency?: number;
-  created_at?: string;
-  updated_at?: string;
+  is_active?: boolean;
+  date_joined?: string;
 }
 
 export interface Currency {
@@ -38,15 +36,21 @@ export interface Tag {
   created_at: string;
 }
 
+// Формат ответа ExpenseListSerializer (list) и ExpenseSerializer (detail)
 export interface Expense {
   id: number;
   amount: string;
   description?: string;
   date: string;
   category: number;
+  category_name?: string;
+  category_icon?: string;
+  category_color?: string;
   currency: number;
-  tags: number[];
-  receipt?: string;
+  currency_code?: string;
+  tags?: number[];
+  tag_names?: string[];
+  receipt?: string | null;
   user: number;
   created_at: string;
   updated_at: string;
@@ -56,12 +60,16 @@ export interface Budget {
   id: number;
   name: string;
   amount: string;
-  spent: string;
-  period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
   start_date: string;
-  end_date: string;
+  end_date?: string | null;
   category?: number;
-  user: number;
+  currency_code?: string;
+  spent_amount?: number;
+  remaining_amount?: number;
+  spent_percentage?: number;
+  is_exceeded?: boolean;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
