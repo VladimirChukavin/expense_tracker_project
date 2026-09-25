@@ -9,8 +9,14 @@ interface AuthTokens {
 const TOKEN_KEY = 'auth_tokens';
 
 export const getTokens = (): AuthTokens | null => {
-  const tokens = localStorage.getItem(TOKEN_KEY);
-  return tokens ? JSON.parse(tokens) : null;
+  try {
+    const tokens = localStorage.getItem(TOKEN_KEY);
+    return tokens ? JSON.parse(tokens) : null;
+  } catch {
+    // битые данные в localStorage не должны ломать приложение
+    localStorage.removeItem(TOKEN_KEY);
+    return null;
+  }
 };
 
 export const setTokens = (tokens: AuthTokens): void => {
@@ -22,13 +28,13 @@ export const clearTokens = (): void => {
 };
 
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: ((token: string | null) => void)[] = [];
 
-const subscribeTokenRefresh = (cb: (token: string) => void) => {
+const subscribeTokenRefresh = (cb: (token: string | null) => void) => {
   refreshSubscribers.push(cb);
 };
 
-const onRefreshed = (token: string) => {
+const notifySubscribers = (token: string | null) => {
   refreshSubscribers.forEach((cb) => cb(token));
   refreshSubscribers = [];
 };
@@ -55,8 +61,12 @@ apiClient.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          subscribeTokenRefresh((token: string) => {
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((token: string | null) => {
+            if (!token) {
+              reject(error);
+              return;
+            }
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
@@ -71,18 +81,21 @@ apiClient.interceptors.response.use(
       const tokens = getTokens();
 
       if (!tokens?.refresh) {
+        isRefreshing = false;
         clearTokens();
         window.location.href = '/login';
         return Promise.reject(error);
       }
 
       try {
-        const response = await apiClient.post('/auth/token/refresh/', {
-          refresh: tokens.refresh,
-        });
+        // отдельный axios-вызов: без interceptors, иначе рекурсия
+        const { default: axios } = await import('axios');
+        const response = await axios.post(
+          `${apiClient.defaults.baseURL}/auth/token/refresh/`,
+          { refresh: tokens.refresh }
+        );
 
         const { access } = response.data;
-
         setTokens({ ...tokens, access });
 
         if (originalRequest.headers) {
@@ -90,11 +103,13 @@ apiClient.interceptors.response.use(
         }
 
         isRefreshing = false;
-        onRefreshed(access);
+        notifySubscribers(access);
 
         return apiClient(originalRequest);
       } catch (refreshError) {
+        // сообщаем ожидающим запросам, что refresh не удался
         isRefreshing = false;
+        notifySubscribers(null);
         clearTokens();
         window.location.href = '/login';
         return Promise.reject(refreshError);
