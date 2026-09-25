@@ -1,15 +1,9 @@
-"""
-Tag model for organizing expenses.
-"""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from core.models import TimeStampedModel, UserOwnedModel
 
 
 class Tag(TimeStampedModel, UserOwnedModel):
-    """
-    Tag model for expense organization.
-    """
     name = models.CharField(_('name'), max_length=50)
     color = models.CharField(_('color'), max_length=7, default='#6B7280')
     description = models.TextField(_('description'), blank=True)
