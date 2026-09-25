@@ -1,15 +1,9 @@
-"""
-Category model for organizing expenses.
-"""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from core.models import TimeStampedModel, UserOwnedModel
 
 
 class Category(TimeStampedModel, UserOwnedModel):
-    """
-    Category model for organizing expenses.
-    """
     name = models.CharField(_('name'), max_length=100)
     icon = models.CharField(_('icon'), max_length=50, blank=True, help_text=_('Icon name or emoji'))
     color = models.CharField(_('color'), max_length=7, default='#6B7280', help_text=_('Hex color code'))
@@ -38,13 +32,11 @@ class Category(TimeStampedModel, UserOwnedModel):
 
     @property
     def full_path(self):
-        """Get full category path."""
         if self.parent:
             return f"{self.parent.full_path} > {self.name}"
         return self.name
 
     def get_total_expenses(self, start_date=None, end_date=None):
-        """Calculate total expenses for this category."""
         from apps.expenses.models import Expense
         from django.db.models import Sum
 
