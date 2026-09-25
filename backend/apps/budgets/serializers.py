@@ -1,15 +1,9 @@
-"""
-Budget serializers.
-"""
 from rest_framework import serializers
 from .models import Budget
 from apps.categories.serializers import CategoryListSerializer
 
 
 class BudgetSerializer(serializers.ModelSerializer):
-    """
-    Detailed serializer for budget model.
-    """
     category_detail = CategoryListSerializer(source='category', read_only=True)
     currency_code = serializers.CharField(source='currency.code', read_only=True)
     spent_amount = serializers.SerializerMethodField()
@@ -30,27 +24,24 @@ class BudgetSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at')
 
     def get_spent_amount(self, obj):
-        """Get spent amount."""
         return float(obj.get_spent_amount())
 
     def get_remaining_amount(self, obj):
-        """Get remaining amount."""
-        return float(obj.get_remaining_amount())
+        return float(obj.amount - obj.get_spent_amount())
 
     def get_spent_percentage(self, obj):
-        """Get spent percentage."""
-        return round(obj.get_spent_percentage(), 2)
+        spent = obj.get_spent_amount()
+        if obj.amount > 0:
+            return round(float((spent / obj.amount) * 100), 2)
+        return 0
 
     def get_is_exceeded(self, obj):
-        """Check if budget is exceeded."""
-        return obj.is_exceeded()
+        return obj.get_spent_amount() > obj.amount
 
     def get_should_alert(self, obj):
-        """Check if should alert."""
-        return obj.should_alert()
+        return obj.alert_enabled and self.get_spent_percentage(obj) >= obj.alert_threshold
 
     def validate_category(self, value):
-        """Validate that category belongs to the user."""
         if value:
             user = self.context['request'].user
             if value.user != user:
@@ -58,7 +49,6 @@ class BudgetSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        """Validate date range."""
         start_date = attrs.get('start_date')
         end_date = attrs.get('end_date')
 
@@ -68,15 +58,11 @@ class BudgetSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """Create budget with user from request."""
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
 
 class BudgetListSerializer(serializers.ModelSerializer):
-    """
-    Simplified serializer for budget lists.
-    """
     currency_code = serializers.CharField(source='currency.code', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     spent_percentage = serializers.SerializerMethodField()
@@ -89,5 +75,7 @@ class BudgetListSerializer(serializers.ModelSerializer):
         )
 
     def get_spent_percentage(self, obj):
-        """Get spent percentage."""
-        return round(obj.get_spent_percentage(), 2)
+        spent = obj.get_spent_amount()
+        if obj.amount > 0:
+            return round(float((spent / obj.amount) * 100), 2)
+        return 0
