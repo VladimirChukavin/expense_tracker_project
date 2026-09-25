@@ -52,7 +52,15 @@ export const ExpensesPage = () => {
 
       <ExpenseList filters={filters} onEdit={handleEdit} />
 
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <Dialog
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) {
+            setExpenseToEdit(undefined);
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -60,6 +68,8 @@ export const ExpensesPage = () => {
             </DialogTitle>
           </DialogHeader>
           <ExpenseForm
+            // key сбрасывает react-hook-form при смене редактируемого расхода
+            key={expenseToEdit?.id ?? 'new'}
             expense={expenseToEdit}
             onSubmit={handleFormSubmit}
             onCancel={() => {
