@@ -8,9 +8,9 @@ interface ExpensesByCategoryProps {
 
 export const ExpensesByCategory = ({ data }: ExpensesByCategoryProps) => {
   const chartData = data.map((item) => ({
-    name: item.category_name,
-    value: parseFloat(item.total_amount),
-    color: item.category_color,
+    name: item.category__name,
+    value: item.total,
+    color: item.category__color,
   }));
 
   return (
