@@ -1,13 +1,9 @@
-"""
-Tests for the auth API: register, login, me, logout, delete account.
-"""
 import pytest
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 pytestmark = pytest.mark.django_db
-
 
 REGISTER_URL = '/api/auth/register/'
 LOGIN_URL = '/api/auth/login/'
@@ -92,12 +88,11 @@ class TestLogout:
             {'email': user.email, 'password': 'testpass123'},
         )
         refresh = login.data['refresh']
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")
 
-        # logout blacklists the refresh token
         response = api_client.post(LOGOUT_URL, {'refresh': refresh})
         assert response.status_code == 200
 
-        # the blacklisted token can no longer be used to refresh
         refresh_response = api_client.post(
             '/api/auth/token/refresh/', {'refresh': refresh}
         )
