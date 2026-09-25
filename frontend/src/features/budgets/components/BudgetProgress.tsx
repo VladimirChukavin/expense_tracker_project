@@ -8,7 +8,7 @@ interface BudgetProgressProps {
 
 export const BudgetProgress = ({ budget, showLabel = true }: BudgetProgressProps) => {
   const amount = parseFloat(budget.amount);
-  const spent = parseFloat(budget.spent);
+  const spent = budget.spent_amount ?? 0;
   const percentage = Math.min((spent / amount) * 100, 100);
 
   const getColor = () => {
