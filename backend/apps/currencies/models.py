@@ -1,15 +1,9 @@
-"""
-Currency model for multi-currency support.
-"""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from core.models import TimeStampedModel
 
 
 class Currency(TimeStampedModel):
-    """
-    Currency model for multi-currency support.
-    """
     code = models.CharField(_('code'), max_length=3, unique=True)
     name = models.CharField(_('name'), max_length=50)
     symbol = models.CharField(_('symbol'), max_length=10)
@@ -26,9 +20,6 @@ class Currency(TimeStampedModel):
 
 
 class ExchangeRate(TimeStampedModel):
-    """
-    Exchange rate model for currency conversion.
-    """
     from_currency = models.ForeignKey(
         Currency,
         on_delete=models.CASCADE,
