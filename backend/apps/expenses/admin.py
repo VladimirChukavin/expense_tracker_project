@@ -1,15 +1,9 @@
-"""
-Expense admin configuration.
-"""
 from django.contrib import admin
 from .models import Expense, RecurringExpense
 
 
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
-    """
-    Admin interface for expenses.
-    """
     list_display = (
         'date', 'amount', 'currency', 'category', 'user',
         'payment_method', 'is_verified', 'created_at'
@@ -49,9 +43,6 @@ class ExpenseAdmin(admin.ModelAdmin):
 
 @admin.register(RecurringExpense)
 class RecurringExpenseAdmin(admin.ModelAdmin):
-    """
-    Admin interface for recurring expenses.
-    """
     list_display = (
         'description', 'amount', 'currency', 'frequency',
         'next_date', 'is_active', 'auto_generate', 'user'
