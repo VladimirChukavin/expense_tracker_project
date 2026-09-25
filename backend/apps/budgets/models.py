@@ -52,7 +52,6 @@ class Budget(TimeStampedModel, UserOwnedModel):
     start_date = models.DateField(_('start date'))
     end_date = models.DateField(_('end date'), null=True, blank=True)
 
-    # Optional category filter
     category = models.ForeignKey(
         'categories.Category',
         on_delete=models.CASCADE,
