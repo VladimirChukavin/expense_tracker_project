@@ -1,6 +1,3 @@
-"""
-Tests for RecurringExpense.generate_next_expense date math.
-"""
 import pytest
 from datetime import date
 from decimal import Decimal
@@ -36,7 +33,6 @@ def make_recurring(user, category, currency, next_date, frequency='monthly'):
 
 class TestGenerateNextExpense:
     def test_monthly_from_december_rolls_year(self, user, category, currency):
-        """31 декабря + 1 месяц = 31 января следующего года (не ValueError)."""
         recurring = make_recurring(
             user, category, currency, date(2026, 12, 31), frequency='monthly'
         )
@@ -47,7 +43,6 @@ class TestGenerateNextExpense:
         assert recurring.next_date == date(2027, 1, 31)
 
     def test_monthly_day_31_clamps_to_month_end(self, user, category, currency):
-        """31 января + 1 месяц = 28 февраля (клэмп по длине месяца)."""
         recurring = make_recurring(
             user, category, currency, date(2026, 1, 31), frequency='monthly'
         )
@@ -57,7 +52,6 @@ class TestGenerateNextExpense:
         assert recurring.next_date == date(2026, 2, 28)
 
     def test_yearly_from_feb_29(self, user, category, currency):
-        """29 февраля + 1 год = 28 февраля следующего (невисокосного) года."""
         recurring = make_recurring(
             user, category, currency, date(2028, 2, 29), frequency='yearly'
         )
