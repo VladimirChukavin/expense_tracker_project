@@ -14,8 +14,8 @@ interface BudgetCardProps {
 
 export const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
   const amount = parseFloat(budget.amount);
-  const spent = parseFloat(budget.spent);
-  const isExceeded = spent >= amount;
+  const spent = budget.spent_amount ?? 0;
+  const isExceeded = budget.is_exceeded ?? spent >= amount;
   const periodLabel = BUDGET_PERIODS.find(p => p.value === budget.period)?.label || budget.period;
 
   return (
@@ -49,7 +49,7 @@ export const BudgetCard = ({ budget, onEdit, onDelete }: BudgetCardProps) => {
 
         <div className="flex justify-between text-xs text-gray-500">
           <span>Начало: {formatDate(budget.start_date)}</span>
-          <span>Конец: {formatDate(budget.end_date)}</span>
+          {budget.end_date && <span>Конец: {formatDate(budget.end_date)}</span>}
         </div>
 
         {budget.category && (
