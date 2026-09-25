@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,12 @@ import { useAuth } from '../hooks/useAuth';
 
 const registerSchema = z.object({
   email: z.string().email('Некорректный email'),
-  username: z.string().min(3, 'Минимум 3 символа'),
-  password: z.string().min(6, 'Минимум 6 символов'),
-  password2: z.string().min(6, 'Минимум 6 символов'),
+  password: z.string().min(8, 'Минимум 8 символов'),
+  password2: z.string().min(8, 'Минимум 8 символов'),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
-  agreeToTerms: z.boolean().refine((value) => value, {
-    message: 'Необходимо согласиться с условиями',
+  agreeToTerms: z.boolean().refine((value) => value === true, {
+    message: 'Необходимо принять соглашение и политику',
   }),
 }).refine((data) => data.password === data.password2, {
   message: 'Пароли не совпадают',
@@ -29,12 +28,17 @@ export const RegisterForm = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      agreeToTerms: false,
+    },
   });
 
-  const onSubmit = (data: RegisterFormData) => {
+  const onSubmit = ({ agreeToTerms, ...data }: RegisterFormData) => {
+    // agreeToTerms — только флаг UI, в API не отправляется
     registerUser(data);
   };
 
@@ -51,20 +55,6 @@ export const RegisterForm = () => {
         />
         {errors.email && (
           <p className="text-sm text-red-500">{errors.email.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="username">Имя пользователя</Label>
-        <Input
-          id="username"
-          type="text"
-          placeholder="username"
-          {...register('username')}
-          disabled={isLoading}
-        />
-        {errors.username && (
-          <p className="text-sm text-red-500">{errors.username.message}</p>
         )}
       </div>
 
@@ -120,38 +110,45 @@ export const RegisterForm = () => {
         )}
       </div>
 
-      <div className="flex items-start space-x-2">
-        <Checkbox
-          id="agreeToTerms"
-          {...register('agreeToTerms')}
-          disabled={isLoading}
-        />
-        <div className="text-sm leading-relaxed">
-          <Label htmlFor="agreeToTerms" className="font-normal cursor-pointer">
-            Я согласен с{' '}
-            <a
-              href="/terms-of-service.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              пользовательским соглашением
-            </a>
-            {' '}и{' '}
-            <a
-              href="/privacy-policy.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              политикой обработки данных
-            </a>
-          </Label>
-          {errors.agreeToTerms && (
-            <p className="text-sm text-red-500 mt-1">{errors.agreeToTerms.message}</p>
-          )}
-        </div>
-      </div>
+      <Controller
+        control={control}
+        name="agreeToTerms"
+        render={({ field }) => (
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="agreeToTerms"
+              checked={field.value}
+              onCheckedChange={field.onChange}
+              disabled={isLoading}
+            />
+            <div className="text-sm leading-relaxed">
+              <Label htmlFor="agreeToTerms" className="font-normal cursor-pointer">
+                Я согласен с{' '}
+                <a
+                  href="/terms-of-service.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  пользовательским соглашением
+                </a>
+                {' '}и{' '}
+                <a
+                  href="/privacy-policy.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  политикой обработки данных
+                </a>
+              </Label>
+              {errors.agreeToTerms && (
+                <p className="text-sm text-red-500 mt-1">{errors.agreeToTerms.message}</p>
+              )}
+            </div>
+          </div>
+        )}
+      />
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
