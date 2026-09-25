@@ -1,8 +1,9 @@
-import {format, parseISO} from 'date-fns';
+import {format, parseISO, isValid} from 'date-fns';
 import {ru} from 'date-fns/locale';
 
 export const formatDate = (date: string | Date, formatStr: string = 'dd.MM.yyyy'): string => {
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (!isValid(dateObj)) return String(date);
     return format(dateObj, formatStr, {locale: ru});
 };
 
@@ -10,9 +11,22 @@ export const formatDateTime = (date: string | Date): string => {
     return formatDate(date, 'dd.MM.yyyy HH:mm');
 };
 
-export const formatCurrency = (amount: string | number, currencySymbol: string = '₽'): string => {
+export const formatCurrency = (
+    amount: string | number,
+    currencyCode: string = 'RUB'
+): string => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    return `${numAmount.toFixed(2)} ${currencySymbol}`;
+    if (Number.isNaN(numAmount)) return String(amount);
+    try {
+        return new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: currencyCode,
+            maximumFractionDigits: 2,
+        }).format(numAmount);
+    } catch {
+        // неизвестный код валюты — показываем как число с кодом
+        return `${numAmount.toFixed(2)} ${currencyCode}`;
+    }
 };
 
 export const formatNumber = (value: number, decimals: number = 2): string => {
@@ -24,11 +38,13 @@ export const formatPercent = (value: number, decimals: number = 1): string => {
 };
 
 export const parseAmount = (value: string): number => {
-    return parseFloat(value.replace(/[^\d.-]/g, ''));
+    const parsed = parseFloat(value.replace(/[^\d.-]/g, ''));
+    return Number.isNaN(parsed) ? 0 : parsed;
 };
 
 export const formatRelativeDate = (date: string | Date): string => {
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (!isValid(dateObj)) return String(date);
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24));
 
