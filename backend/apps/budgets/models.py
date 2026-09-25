@@ -1,6 +1,3 @@
-"""
-Budget model for expense planning.
-"""
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
@@ -8,10 +5,28 @@ from decimal import Decimal
 from core.models import TimeStampedModel, UserOwnedModel
 
 
+class BudgetQuerySet(models.QuerySet):
+
+    def with_spent_amount(self):
+        from django.db.models import Subquery, Sum, OuterRef, F
+        from django.db.models.functions import Coalesce
+        from apps.expenses.models import Expense
+
+        spent_subquery = Expense.objects.filter(
+            user=OuterRef('user_id'),
+            date__gte=OuterRef('start_date'),
+            date__lte=Coalesce(OuterRef('end_date'), F('date')),
+            currency=OuterRef('currency_id'),
+            category_id=Coalesce(OuterRef('category_id'), F('category_id')),
+        ).order_by().values('user').annotate(
+            total=Sum('amount')
+        ).values('total')[:1]
+
+        return self.annotate(spent_amount_annotation=Subquery(spent_subquery))
+
+
 class Budget(TimeStampedModel, UserOwnedModel):
-    """
-    Budget model for tracking spending limits.
-    """
+    objects = BudgetQuerySet.as_manager()
     PERIOD_CHOICES = [
         ('daily', _('Daily')),
         ('weekly', _('Weekly')),
@@ -47,7 +62,6 @@ class Budget(TimeStampedModel, UserOwnedModel):
         help_text=_('Leave empty for total budget')
     )
 
-    # Alert settings
     alert_threshold = models.IntegerField(
         _('alert threshold'),
         default=80,
@@ -72,7 +86,10 @@ class Budget(TimeStampedModel, UserOwnedModel):
         return f"{self.name} - {self.amount} {self.currency.code}"
 
     def get_spent_amount(self):
-        """Calculate total spent in this budget period."""
+        annotated = getattr(self, 'spent_amount_annotation', None)
+        if annotated is not None:
+            return annotated
+
         from apps.expenses.models import Expense
 
         expenses = Expense.objects.filter(
@@ -90,20 +107,16 @@ class Budget(TimeStampedModel, UserOwnedModel):
         return expenses.aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
 
     def get_remaining_amount(self):
-        """Calculate remaining budget amount."""
         return self.amount - self.get_spent_amount()
 
     def get_spent_percentage(self):
-        """Calculate percentage of budget spent."""
         spent = self.get_spent_amount()
         if self.amount > 0:
             return float((spent / self.amount) * 100)
         return 0
 
     def is_exceeded(self):
-        """Check if budget is exceeded."""
         return self.get_spent_amount() > self.amount
 
     def should_alert(self):
-        """Check if alert threshold is reached."""
         return self.alert_enabled and self.get_spent_percentage() >= self.alert_threshold
