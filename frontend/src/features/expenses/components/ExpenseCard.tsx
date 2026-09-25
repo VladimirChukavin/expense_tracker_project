@@ -19,7 +19,7 @@ export const ExpenseCard = ({ expense, onEdit, onDelete }: ExpenseCardProps) => 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg font-semibold">
-                {formatCurrency(expense.amount)}
+                {formatCurrency(expense.amount, expense.currency_code || undefined)}
               </span>
               {expense.receipt && (
                 <Receipt size={16} className="text-gray-400" />
@@ -32,13 +32,21 @@ export const ExpenseCard = ({ expense, onEdit, onDelete }: ExpenseCardProps) => 
 
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <span>{formatDate(expense.date)}</span>
+              {expense.category_name && (
+                <span
+                  className="inline-flex items-center gap-1 rounded px-1.5 py-0.5"
+                  style={{ backgroundColor: `${expense.category_color || '#6B7280'}22` }}
+                >
+                  {expense.category_icon} {expense.category_name}
+                </span>
+              )}
             </div>
 
-            {expense.tags && expense.tags.length > 0 && (
-              <div className="flex gap-1 mt-2">
-                {expense.tags.map((tagId) => (
-                  <Badge key={tagId} variant="secondary" className="text-xs">
-                    Tag {tagId}
+            {expense.tag_names && expense.tag_names.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {expense.tag_names.map((tagName) => (
+                  <Badge key={tagName} variant="secondary" className="text-xs">
+                    {tagName}
                   </Badge>
                 ))}
               </div>
