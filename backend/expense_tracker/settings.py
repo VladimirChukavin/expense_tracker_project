@@ -5,6 +5,9 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
+from celery.schedules import crontab
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,6 +16,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-pro
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+
+if not DEBUG and SECRET_KEY.startswith('django-insecure'):
+    raise ImproperlyConfigured(
+        'SECRET_KEY must be set via the SECRET_KEY environment variable in production.'
+    )
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -25,14 +33,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
     'drf_spectacular',
 
-    # Local apps
     'core',
     'apps.users',
     'apps.categories',
@@ -81,7 +88,7 @@ DATABASES = {
         'NAME': os.environ.get('DB_NAME', 'expense_tracker'),
         'USER': os.environ.get('DB_USER', 'postgres'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'tracker_database'),
+        'HOST': os.environ.get('DB_HOST', 'expense_tracker_database'),
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
@@ -122,6 +129,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
 AUTH_USER_MODEL = 'users.User'
+
+# File upload settings
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 
 # REST Framework settings
 REST_FRAMEWORK = {
@@ -170,9 +180,9 @@ SIMPLE_JWT = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:3000,http://127.0.0.1:3000'
+    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173'
 ).split(',')
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = False
 
 # Spectacular settings (API documentation)
 SPECTACULAR_SETTINGS = {
@@ -189,6 +199,18 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# Расписание периодических задач
+CELERY_BEAT_SCHEDULE = {
+    'generate-recurring-expenses': {
+        'task': 'apps.expenses.tasks.generate_recurring_expenses',
+        'schedule': crontab(hour=0, minute=5),
+    },
+    'check-budget-alerts': {
+        'task': 'apps.expenses.tasks.check_budget_alerts',
+        'schedule': crontab(hour=8, minute=0),
+    },
+}
 
 # Cache settings
 CACHES = {
@@ -207,8 +229,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
+            'format': '%(asctime)s [%(levelname)s] %(module)s %(name)s: %(message)s',
         },
     },
     'handlers': {
@@ -216,19 +237,22 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
+        'logfile': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'expense_tracker.log',
             'formatter': 'verbose',
+            'maxBytes': 1024 * 1024 * 10,
+            'backupCount': 3,
+            'encoding': 'utf-8',
         },
     },
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['console', 'logfile'],
         'level': 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'logfile'],
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
