@@ -17,9 +17,9 @@ import { BUDGET_PERIODS } from '@/lib/constants';
 const budgetSchema = z.object({
   name: z.string().min(1, 'Название обязательно'),
   amount: z.string().min(1, 'Сумма обязательна'),
-  period: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
+  period: z.enum(['daily', 'weekly', 'monthly', 'yearly', 'custom']),
   start_date: z.string().min(1, 'Дата начала обязательна'),
-  end_date: z.string().min(1, 'Дата окончания обязательна'),
+  end_date: z.string().nullable(),
   category: z.number().optional().nullable(),
 });
 
@@ -47,12 +47,13 @@ export const BudgetForm = ({ budget, onSubmit, onCancel, isLoading }: BudgetForm
           amount: budget.amount,
           period: budget.period,
           start_date: budget.start_date,
-          end_date: budget.end_date,
+          end_date: budget.end_date ?? null,
           category: budget.category || null,
         }
       : {
           period: 'monthly',
           start_date: new Date().toISOString().split('T')[0],
+          end_date: null,
           category: null,
         },
   });
@@ -127,16 +128,16 @@ export const BudgetForm = ({ budget, onSubmit, onCancel, isLoading }: BudgetForm
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="end_date">Дата окончания *</Label>
+          <Label htmlFor="end_date">Дата окончания</Label>
           <Input
             id="end_date"
             type="date"
-            {...register('end_date')}
+            {...register('end_date', { setValueAs: (v) => v || null })}
             disabled={isLoading}
           />
-          {errors.end_date && (
-            <p className="text-sm text-red-500">{errors.end_date.message}</p>
-          )}
+          <p className="text-xs text-gray-500">
+            Оставьте пустым для бессрочного бюджета
+          </p>
         </div>
       </div>
 
